@@ -1,8 +1,19 @@
 import User from "../models/User.model.js";
 import bcrypt from "bcryptjs";
-import generateToken from "../utils/generateToken.js";
+import jwt from "jsonwebtoken";
 
+// ===========================
+// GENERATE TOKEN (inline)
+// ===========================
+const generateToken = (user) => {
+  return jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: "7d",
+  });
+};
+
+// ===========================
 // REGISTER
+// ===========================
 export const register = async (req, res) => {
   try {
     const { name, email, password, role, mobile, address } = req.body;
@@ -18,7 +29,7 @@ export const register = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      role,
+      role: role?.toUpperCase() || "STUDENT",
       mobile,
       address,
     });
@@ -32,7 +43,9 @@ export const register = async (req, res) => {
   }
 };
 
+// ===========================
 // LOGIN
+// ===========================
 export const login = async (req, res) => {
   try {
     const { email, password } = req.body;
