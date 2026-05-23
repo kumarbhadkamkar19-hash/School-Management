@@ -6,18 +6,15 @@ export const addEmployee = async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
 
-    // role check
     if (!["TEACHER", "FINANCE"].includes(role)) {
       return res.status(400).json({ message: "Invalid role" });
     }
 
-    // check existing user
     const exists = await User.findOne({ email });
     if (exists) {
       return res.status(400).json({ message: "User already exists" });
     }
 
-    // create user
     const user = await User.create({
       name,
       email,
@@ -38,7 +35,7 @@ export const addEmployee = async (req, res) => {
   }
 };
 
-// 🔹 Student Registration
+// 🔹 Create Student
 export const createStudent = async (req, res) => {
   try {
     const student = await Student.create(req.body);
@@ -75,25 +72,35 @@ export const getStudents = async (req, res) => {
     });
   }
 };
-// 🔹 Update Student (Add Parent Link)
+
+// 🔹 Update Student (🔥 FIXED - MAIN PART)
 export const updateStudent = async (req, res) => {
   try {
-    const student = await Student.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-    });
+    const student = await Student.findByIdAndUpdate(
+      req.params.id,
+      { $set: req.body }, // ✅ SAFE & FULL UPDATE
+      {
+        new: true,
+        runValidators: true,
+      },
+    );
 
     if (!student) {
       return res.status(404).json({
+        success: false,
         message: "Student not found",
       });
     }
 
-    res.json({
+    res.status(200).json({
       success: true,
-      message: "Student updated",
+      message: "Student updated successfully",
       student,
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({
+      success: false,
+      message: error.message,
+    });
   }
 };
